@@ -1,0 +1,11 @@
+# The four tools are added under tools\ by _tools\build-suite.ps1 at release time.
+tools/
+# Never commit runtime data or secrets.
+*.log
+.env
+.env.*
+*.secret
+*token*.txt
+data/
+logs/
+__pycache__/

@@ -1,0 +1,16 @@
+Brightline Document Verification Suite
+Copyright 2026 Brightline IP
+
+Licensed under the Apache License, Version 2.0 (see LICENSE).
+
+This installer bundles four separate Brightline IP projects, each under Apache-2.0 with its own LICENSE and
+NOTICE in tools\<name>\: Research Verification Workbench, Document Verification, Context Forge and Get Files.
+Their third-party components (Python and npm packages, Docker base images) are downloaded by Setup from their
+publishers (PyPI, the npm registry, Docker Hub) and are governed by their own licences; see each tool's NOTICE.
+
+Programs Setup can offer to install through Windows Package Manager are not redistributed and keep their own
+terms: Python (PSF License), Node.js (MIT), PostgreSQL (PostgreSQL License) and Docker Desktop (Docker
+Subscription Service Agreement: free for personal use, education, non-commercial open source and small
+businesses; paid for larger organisations).
+
+The suite uses the OpenAI API with your own key; that use is governed by OpenAI's terms.
