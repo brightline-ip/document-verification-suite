@@ -1,6 +1,17 @@
 # Shared helpers for the Brightline Document Verification Suite (setup, launchers, uninstall).
 # Windows PowerShell 5.1 compatible. Dot-source this file; it defines functions only.
 
+# When Windows PowerShell 5.1 is started from PowerShell 7 (for example Setup.cmd typed into a PowerShell 7
+# window), it inherits PowerShell 7's module path and cannot load its own built-in modules (Get-Acl,
+# ConvertTo-SecureString, ...). Use Windows PowerShell's default module path for this process and its children.
+if ($PSVersionTable.PSEdition -ne 'Core') {
+    $env:PSModulePath = @(
+        (Join-Path ([Environment]::GetFolderPath('MyDocuments')) 'WindowsPowerShell\Modules'),
+        (Join-Path $env:ProgramFiles 'WindowsPowerShell\Modules'),
+        (Join-Path $env:SystemRoot 'System32\WindowsPowerShell\v1.0\Modules')
+    ) -join ';'
+}
+
 $script:SuiteVersion = '0.1.0'
 $script:SuiteMarker = '.brightline-docverify-suite'
 $script:ToolSlugs = @('research-workbench', 'document-verification', 'context-forge', 'get-files')

@@ -56,7 +56,7 @@ param(
 )
 $ErrorActionPreference = 'Stop'
 $bundle = [IO.Path]::GetFullPath($PSScriptRoot)
-. (Join-Path $bundle 'suite\SuiteCommon.ps1')
+. ($bundle + '\suite\SuiteCommon.ps1')  # first: also repairs the module path (see SuiteCommon.ps1)
 
 $PowerShellExe = Join-Path $env:SystemRoot 'System32\WindowsPowerShell\v1.0\powershell.exe'
 $InstallRoot = [IO.Path]::GetFullPath($InstallRoot)
