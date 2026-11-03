@@ -30,12 +30,19 @@ $ErrorActionPreference = 'Stop'
 
 function Remove-Tree([string]$Path) {
     if (-not (Test-Path -LiteralPath $Path)) { return }
+    # Unlink junctions and symbolic links first, without following them, so a linked folder's target
+    # (for example data moved to another drive) is never emptied.
+    $links = @(Get-ChildItem -LiteralPath $Path -Recurse -Force -Attributes ReparsePoint -ErrorAction SilentlyContinue |
+        Sort-Object { $_.FullName.Length } -Descending)
+    foreach ($link in $links) {
+        if ($link.PSIsContainer) { [IO.Directory]::Delete($link.FullName, $false) } else { [IO.File]::Delete($link.FullName) }
+    }
     try { Remove-Item -LiteralPath $Path -Recurse -Force -ErrorAction Stop } catch {}
     if (Test-Path -LiteralPath $Path) {
         # Long paths (for example deep node_modules folders): empty the folder with robocopy, then remove it.
         $empty = Join-Path ([IO.Path]::GetTempPath()) ('bl-empty-' + [Guid]::NewGuid().ToString('N'))
         New-Item -ItemType Directory -Path $empty | Out-Null
-        $null = & robocopy.exe $empty $Path /MIR /NFL /NDL /NJH /NJS /NP
+        $null = & robocopy.exe $empty $Path /MIR /XJ /NFL /NDL /NJH /NJS /NP
         Remove-Item -LiteralPath $empty -Force -ErrorAction SilentlyContinue
         Remove-Item -LiteralPath $Path -Recurse -Force -ErrorAction SilentlyContinue
     }

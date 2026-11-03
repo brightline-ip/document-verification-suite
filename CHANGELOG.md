@@ -17,3 +17,12 @@ First public preview of the one-click Windows installer.
 
 - Licensed under the PolyForm Noncommercial License 1.0.0 instead of Apache-2.0. Noncommercial use is free;
   commercial use requires a license from Brightline IP.
+
+## 0.1.0 (security review fixes) — 2026-11-02
+
+- Secret files (Workbench settings with the OpenAI key, tokens, database password) are restricted to your account
+  before the secret is written; Setup refuses FAT/exFAT install drives and paths containing `%`, `!` or `"`.
+- Access lists are granted by account SID.
+- Uninstall unlinks junctions and symbolic links instead of following them.
+- Docker Compose detection no longer fails on a Docker stderr notice under Windows PowerShell 5.1.
+- SECURITY.md: secrets are also in the Docker containers' environment. README: repair rewrites the Workbench `.env`.

@@ -32,7 +32,9 @@ tokens in a report.
 - **Secrets on disk, readable by your account only** (explicit access lists, no inheritance): the Workbench `.env`
   file (your OpenAI key, database password, tokens), the Workbench access token, the Get Files token, the stored
   database password. Context Forge's token also allows SYSTEM and Administrators, as that tool's own installer
-  sets it.
+  sets it. Each secret file is restricted before the secret is written; Setup refuses FAT/exFAT install drives,
+  which cannot be restricted. In Docker mode the same values are also in the Workbench containers' environment,
+  so anything running as you can read them with `docker inspect` or Docker Desktop.
 - **Workbench access token.** Required on every Workbench API call. *Open Research Workbench* copies it to the
   clipboard so it can be pasted into the page; clipboard history (Win+V) and clipboard sync, if you enabled them,
   may keep a copy.

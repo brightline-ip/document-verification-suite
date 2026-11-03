@@ -57,11 +57,27 @@ function Write-Utf8NoBom([string]$Path, [string]$Text) {
 function Get-CurrentAccount { return [Security.Principal.WindowsIdentity]::GetCurrent().Name }
 
 # Restrict a file or folder to the current Windows account only (no inheritance, no other users).
+# Granted by SID, so accounts whose names icacls cannot resolve (some Entra ID accounts) still work.
 function Set-UserOnlyAcl([string]$Path, [switch]$Folder) {
-    $account = Get-CurrentAccount
+    $account = '*' + [Security.Principal.WindowsIdentity]::GetCurrent().User.Value
     $grant = if ($Folder) { "${account}:(OI)(CI)F" } else { "${account}:F" }
     $null = & icacls.exe $Path /inheritance:r /grant:r $grant 2>&1
     if ($LASTEXITCODE -ne 0) { throw "Could not restrict access to $Path to your Windows account." }
+}
+
+# Write a secret so it is never readable by other accounts: create the file empty, restrict it, then write.
+# If the file cannot be restricted, a file this call created is deleted before the error is raised.
+function Write-SecretFile([string]$Path, [string]$Text) {
+    $dir = Split-Path -Parent $Path
+    if ($dir -and -not (Test-Path -LiteralPath $dir)) { New-Item -ItemType Directory -Force -Path $dir | Out-Null }
+    $created = -not (Test-Path -LiteralPath $Path)
+    if ($created) { [IO.File]::WriteAllText($Path, '') }
+    try { Set-UserOnlyAcl $Path }
+    catch {
+        if ($created) { Remove-Item -LiteralPath $Path -Force -ErrorAction SilentlyContinue }
+        throw
+    }
+    [IO.File]::WriteAllText($Path, $Text, (New-Object Text.UTF8Encoding $false))
 }
 
 function New-RandomToken([int]$Bytes = 32) {
@@ -249,10 +265,13 @@ function Find-SuiteDocker {
     $exe = if ($cmd) { $cmd.Source } elseif (Test-Path "$env:ProgramFiles\Docker\Docker\resources\bin\docker.exe") { "$env:ProgramFiles\Docker\Docker\resources\bin\docker.exe" } else { $null }
     if (-not $exe) { return $null }
     $result = @{ Exe = $exe; Compose = $null; Running = $false; Desktop = "$env:ProgramFiles\Docker\Docker\Docker Desktop.exe" }
+    # Windows PowerShell 5.1 turns any stderr line (an update notice, a plugin warning) into an error under
+    # 'Stop', which would wrongly report Compose as missing.
+    $eap = $ErrorActionPreference; $ErrorActionPreference = 'Continue'
     try {
         $c = & $exe compose version --short 2>$null
         if ($LASTEXITCODE -eq 0 -and $c) { $result.Compose = [version](($c | Select-Object -First 1).Trim().TrimStart('v') -replace '[^0-9.].*$', '') }
-    } catch {}
+    } catch {} finally { $ErrorActionPreference = $eap }
     $result.Running = Test-DockerRunning $exe
     return $result
 }
@@ -321,7 +340,8 @@ function Get-RunningSuitePid([string]$RunDir, [string]$Name, [string]$MustContai
 }
 
 function Quote-Arg([string]$Value) {
-    if ($Value.Contains('"')) { throw 'Paths containing double quotes are not supported.' }
+    # cmd.exe would expand %NAME% and !NAME! inside the quotes, so those characters are refused too.
+    if ($Value.IndexOfAny([char[]]'"%!') -ge 0) { throw "Paths containing "", % or ! are not supported: $Value" }
     return '"' + $Value + '"'
 }
 

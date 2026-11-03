@@ -156,7 +156,8 @@ press Ctrl+V, confirm).
   that is not running). In Docker mode it starts Docker Desktop if needed.
 - **Stop Brightline Verification Suite** stops the four services. Your documents and settings are kept.
 - **Change the OpenAI key**: run `Setup.cmd` again (from the extracted folder) and answer **N** to "Keep it?".
-  Re-running Setup also repairs an installation and keeps your data.
+  Re-running Setup also repairs an installation and keeps your data. It rewrites the Workbench settings file
+  (`app\research-workbench\.env`), so make any manual changes there again afterwards.
 
 ## Costs
 

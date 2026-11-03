@@ -170,6 +170,12 @@ try {
     if ($free -lt 6GB) { Write-Warn2 ("Only {0:N1} GB free on {1}. Allow about 6 GB (Docker images, Python packages, your documents)." -f ($free / 1GB), $drive) }
     else { Write-Good ("{0:N0} GB free on {1}" -f ($free / 1GB), $drive) }
 } catch {}
+# Secrets are protected with NTFS permissions; FAT/exFAT drives (USB sticks, some SD cards) cannot do that.
+$format = try { (New-Object IO.DriveInfo($drive)).DriveFormat } catch { $null }
+if ($format -and $format -ne 'NTFS' -and $format -ne 'ReFS') {
+    throw "The install folder is on a $format drive, which cannot keep your OpenAI key private. Choose a folder on an NTFS drive (-InstallRoot)."
+}
+$null = Quote-Arg $InstallRoot  # refuses characters the background launcher cannot pass safely
 
 # ---- 2. Prerequisites -------------------------------------------------------------------------
 Write-Step 'Step 2 of 7: Checking required programs'
@@ -372,9 +378,8 @@ if (-not (Test-Path -LiteralPath $paths.CfToken)) { throw 'The Context Forge ser
 $wbToken = Read-SecretFile $paths.WorkbenchToken
 if (-not $wbToken) {
     $wbToken = New-RandomToken 32
-    Write-Utf8NoBom $paths.WorkbenchToken $wbToken
 }
-Set-UserOnlyAcl $paths.WorkbenchToken
+Write-SecretFile $paths.WorkbenchToken $wbToken
 
 # ---- 6. Research Workbench ----------------------------------------------------------------------
 Write-Step 'Step 6 of 7: Setting up the Research Workbench'
@@ -391,13 +396,11 @@ if ($WorkbenchMode -eq 'Docker') {
     # (survives an uninstall that keeps data, and a reinstall).
     $pgSecret = Join-Path $paths.Data 'workbench-db-password.secret'
     $pgPassword = if ($oldEnv['POSTGRES_PASSWORD']) { $oldEnv['POSTGRES_PASSWORD'] } elseif (Read-SecretFile $pgSecret) { Read-SecretFile $pgSecret } else { New-RandomToken 24 }
-    Write-Utf8NoBom $pgSecret $pgPassword
-    Set-UserOnlyAcl $pgSecret
+    Write-SecretFile $pgSecret $pgPassword
     $envLines.Add('POSTGRES_PASSWORD=' + $pgPassword)
     $envLines.Add('SOURCE_CORPUS_URL=http://host.docker.internal:' + $GetFilesPort)
     $envLines.Add('SOURCE_CORPUS_TOKEN=' + $gfToken)
-    Write-Utf8NoBom $paths.WorkbenchEnv (($envLines -join "`n") + "`n")
-    Set-UserOnlyAcl $paths.WorkbenchEnv
+    Write-SecretFile $paths.WorkbenchEnv (($envLines -join "`n") + "`n")
     $image = $ComposeProject + '-workbench:' + $script:SuiteVersion
     Write-Utf8NoBom $paths.ComposeOverride ("# Written by setup.ps1: a project-specific image name so uninstall removes only this suite's image.`nservices:`n  app:`n    image: $image`n")
 } else {
@@ -434,16 +437,14 @@ if ($WorkbenchMode -eq 'Docker') {
         if ($code -ne 0) { throw "Could not create the Workbench database (wrong administrator password?). Details: $(Join-Path $paths.Logs 'install-workbench.log')" }
         $dbUrl = "postgres://${roleName}:$rolePw@${PostgresHost}:$PostgresPort/$dbName"
     }
-    Write-Utf8NoBom $dbSecret $dbUrl
-    Set-UserOnlyAcl $dbSecret
+    Write-SecretFile $dbSecret $dbUrl
     $envLines.Add('DATABASE_URL=' + $dbUrl)
     $envLines.Add('HOST=127.0.0.1')
     $envLines.Add('WORKBENCH_DATA_DIR=' + $paths.WorkbenchData)
     if ($docsPy) { $envLines.Add('ARTIFACT_PYTHON=' + $docsPy) }
     $envLines.Add('SOURCE_CORPUS_URL=http://127.0.0.1:' + $GetFilesPort)
     $envLines.Add('SOURCE_CORPUS_TOKEN_FILE=' + $paths.GfToken)
-    Write-Utf8NoBom $paths.WorkbenchEnv (($envLines -join "`n") + "`n")
-    Set-UserOnlyAcl $paths.WorkbenchEnv
+    Write-SecretFile $paths.WorkbenchEnv (($envLines -join "`n") + "`n")
     Write-Info 'Preparing the database tables...'
     $code = Invoke-Logged $node.Exe @('--env-file=.env', 'scripts/migrate.js') 'install-workbench.log' $paths.Workbench
     if ($code -ne 0) { throw "Database preparation failed. Details: $(Join-Path $paths.Logs 'install-workbench.log')" }
