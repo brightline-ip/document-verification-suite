@@ -1,6 +1,6 @@
 # Disclaimer
 
-The Brightline Document Verification Suite (the installer and the four tools it bundles) is a public preview research and workflow aid published by Brightline IP under the Apache License 2.0.
+The Brightline Document Verification Suite (the installer and the four tools it bundles) is a public preview research and workflow aid published by Brightline IP under the PolyForm Noncommercial License 1.0.0 (the installer, Research Verification Workbench and Document Verification) and Apache-2.0 (Context Forge and Get Files).
 
 - **Not legal advice.** The software does not provide legal advice or a legal opinion and does not create an
   attorney-client relationship. Its output is not a substitute for review by a qualified, registered practitioner.
@@ -14,7 +14,7 @@ The Brightline Document Verification Suite (the installer and the four tools it 
 - **Third-party sources and terms.** You are responsible for complying with the terms of use, rate limits and
   copyright of every data source you access with this software, using your own credentials.
 - **No warranty.** The software is provided "AS IS", without warranties or conditions of any kind, as stated in
-  the Apache License 2.0, and Brightline IP is not liable for its use.
+  the PolyForm Noncommercial License 1.0.0, and Brightline IP is not liable for its use.
 - **Model provider.** The suite sends the text of every document you verify, and source passages, to OpenAI
   using your own API key and account. That use, and its cost, are governed by OpenAI's terms and pricing.
 - **Installer.** Setup installs third-party programs (Python, Node.js, Docker Desktop, PostgreSQL) only after you

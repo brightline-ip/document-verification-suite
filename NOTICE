@@ -1,10 +1,12 @@
 Brightline Document Verification Suite
-Copyright 2026 Brightline IP
+Required Notice: Copyright 2026 Brightline IP
 
-Licensed under the Apache License, Version 2.0 (see LICENSE).
+The installer and suite scripts are licensed under the PolyForm Noncommercial License 1.0.0
+(see LICENSE) for noncommercial purposes only. Commercial use (including use by or for a law firm, company or paying client) requires a separate license from Brightline IP: contact timisbright@gmail.com.
 
-This installer bundles four separate Brightline IP projects, each under Apache-2.0 with its own LICENSE and
-NOTICE in tools\<name>\: Research Verification Workbench, Document Verification, Context Forge and Get Files.
+This installer bundles four separate Brightline IP projects, each with its own LICENSE and NOTICE in
+tools\<name>\: Research Verification Workbench and Document Verification (PolyForm Noncommercial License 1.0.0), Context Forge and
+Get Files (Apache-2.0).
 Their third-party components (Python and npm packages, Docker base images) are downloaded by Setup from their
 publishers (PyPI, the npm registry, Docker Hub) and are governed by their own licences; see each tool's NOTICE.
 

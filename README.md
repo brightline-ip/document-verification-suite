@@ -1,6 +1,6 @@
 # Brightline Document Verification Suite
 
-**Public preview 0.1.0** · Windows 10/11 · Apache-2.0 · Brightline IP
+**Public preview 0.1.0** · Windows 10/11 · PolyForm Noncommercial 1.0.0 · Brightline IP
 
 A one-click Windows installer for checking the factual and legal statements in your Word and PDF drafts against
 sources. Drop a `.docx` or `.pdf` on the **Verify a Document** shortcut and, a few minutes later, a report opens in
@@ -237,5 +237,7 @@ Settings > Apps if you no longer need them. Revoke your OpenAI API key if you no
 
 ## License and disclaimer
 
-Apache License 2.0, see [LICENSE](LICENSE) and [NOTICE](NOTICE). The four bundled tools carry their own LICENSE,
+PolyForm Noncommercial License 1.0.0: free for noncommercial use (personal, research, education, nonprofit). Commercial use (including use by or for a law firm, company or paying client) requires a separate license from Brightline IP: contact timisbright@gmail.com.
+The installer, the Research Verification Workbench and Document Verification are under this license; Context Forge
+and Get Files are Apache-2.0. See [LICENSE](LICENSE) and [NOTICE](NOTICE). The four bundled tools carry their own LICENSE,
 README and SECURITY files under `tools\`. Not legal advice: [DISCLAIMER.md](DISCLAIMER.md).
