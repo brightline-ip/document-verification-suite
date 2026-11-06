@@ -30,6 +30,11 @@ $ErrorActionPreference = 'Stop'
 
 function Remove-Tree([string]$Path) {
     if (-not (Test-Path -LiteralPath $Path)) { return }
+    # A link itself is only unlinked, so the fallback below can never empty its target.
+    if ((Get-Item -LiteralPath $Path -Force).Attributes -band [IO.FileAttributes]::ReparsePoint) {
+        if ((Get-Item -LiteralPath $Path -Force).PSIsContainer) { [IO.Directory]::Delete($Path, $false) } else { [IO.File]::Delete($Path) }
+        return
+    }
     # Unlink junctions and symbolic links first, without following them, so a linked folder's target
     # (for example data moved to another drive) is never emptied.
     $links = @(Get-ChildItem -LiteralPath $Path -Recurse -Force -Attributes ReparsePoint -ErrorAction SilentlyContinue |
@@ -89,7 +94,8 @@ try {
         Write-Step 'Stopping the services'
         try { Stop-Suite $config; Write-Good 'Services stopped' } catch { Write-Warn2 ('Could not stop every service: ' + $_.Exception.Message) }
 
-        if ($config.workbench_mode -eq 'Docker' -and $config.docker) {
+        # An earlier Uninstall that stopped partway has already taken the containers down and removed this file.
+        if ($config.workbench_mode -eq 'Docker' -and $config.docker -and (Test-Path -LiteralPath (Join-Path $paths.Workbench 'docker-compose.yml'))) {
             Write-Step 'Removing the Workbench containers'
             if (Start-DockerEngine $config.docker 120) {
                 $downArgs = @('down', '--remove-orphans')
