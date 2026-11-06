@@ -293,10 +293,10 @@ if ($DryRun) {
 # ---- 4. OpenAI key and notices ---------------------------------------------------------------
 Write-Step 'Step 4 of 7: OpenAI account (cost and confidentiality)'
 $oldEnv = Read-DotEnv $paths.WorkbenchEnv
-$apiKey = $null
+$apiKey = $null; $keptKey = $false
 if ($OpenAIKey) { $apiKey = ConvertFrom-SecureToPlain $OpenAIKey }
 elseif ($oldEnv['OPENAI_API_KEY']) {
-    if ($Yes -or (Read-YesNo 'An OpenAI API key is already stored for the suite. Keep it?' $true)) { $apiKey = $oldEnv['OPENAI_API_KEY'] }
+    if ($Yes -or (Read-YesNo 'An OpenAI API key is already stored for the suite. Keep it? (answer n to enter a new key)' $true)) { $apiKey = $oldEnv['OPENAI_API_KEY']; $keptKey = $true }
 }
 if (-not $apiKey) {
     Write-Info 'The Research Workbench uses OpenAI''s models to find the statements in your document and check them'
@@ -327,7 +327,8 @@ if (-not $apiKey) {
     }
 }
 if ($apiKey -match '[\r\n]') { throw 'The API key contains a line break.' }
-Write-Good 'OpenAI key received (it will not be displayed).'
+if ($keptKey) { Write-Good 'Keeping the OpenAI key stored earlier (it will not be displayed).' }
+else { Write-Good 'OpenAI key received (it will not be displayed).' }
 
 $cfRoots = if ($ContextForgeInputRoots) { $ContextForgeInputRoots } else { @($paths.DocVerifyData, $DocumentsFolder) | Where-Object { $_ } }
 
