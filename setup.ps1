@@ -480,7 +480,7 @@ $dvConfig = [ordered]@{
     input_roots  = @($DocumentsFolder | Where-Object { $_ })
     workbench    = [ordered]@{ url = "http://127.0.0.1:$WorkbenchPort"; timeout_seconds = 3000; token_file = $paths.WorkbenchToken }
     discovery    = [ordered]@{ max_external_queries = 10 }
-    get_files    = [ordered]@{ enabled = $true; url = "http://127.0.0.1:$GetFilesPort"; token_file = $paths.GfToken; collection = 'research' }
+    get_files    = [ordered]@{ enabled = $true; url = "http://127.0.0.1:$GetFilesPort"; token_file = $paths.GfToken; collection = 'research'; intake_dir = (Join-Path (Join-Path $paths.App 'get-files') 'intake') }
     context_forge= [ordered]@{ enabled = $true; url = "http://127.0.0.1:$ContextForgePort"; token_file = $paths.CfToken; poll_timeout = 180 }
     drive        = [ordered]@{ enabled = $false }
 }

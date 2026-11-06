@@ -4,6 +4,7 @@ param(
     [switch]$NoPause,
     [switch]$NoOpen,
     [switch]$Yes,
+    [string]$Sources,
     [Parameter(ValueFromRemainingArguments = $true)][string[]]$Files
 )
 $ErrorActionPreference = 'Stop'
@@ -22,7 +23,7 @@ $StatusHelp = [ordered]@{
 }
 $ReasonHelp = [ordered]@{
     NO_SOURCES          = 'no source was linked'
-    NO_ELIGIBLE_SOURCE  = 'sources were linked, but none qualifies as evidence (library documents do not)'
+    NO_ELIGIBLE_SOURCE  = 'sources were linked, but none qualifies as evidence (a library link alone does not)'
     SOURCES_UNAVAILABLE = 'a source was found but could not be read, or was blocked'
     NO_MATCHING_PASSAGE = 'no passage in the sources shared a word with the statement'
     INVALID_MODEL_REPLY = 'passages were sent, but the model''s reply failed validation'
@@ -37,6 +38,14 @@ function Select-DocumentFile {
     $dialog.InitialDirectory = [Environment]::GetFolderPath('MyDocuments')
     if ($dialog.ShowDialog() -eq [Windows.Forms.DialogResult]::OK) { return @($dialog.FileNames) }
     return @()
+}
+
+function Select-SourceFolder {
+    Add-Type -AssemblyName System.Windows.Forms
+    $dialog = New-Object Windows.Forms.FolderBrowserDialog
+    $dialog.Description = 'Choose the folder of source material to check against'
+    if ($dialog.ShowDialog() -eq [Windows.Forms.DialogResult]::OK) { return $dialog.SelectedPath }
+    return $null
 }
 
 # The Workbench logs a short, payload-free reason when a model call fails (for example "provider: HTTP 401").
@@ -68,6 +77,11 @@ function Explain-ProviderReason([string]$Reason) {
     if ($Reason -match 'provider: HTTP 401|provider failed \(HTTP 401\)') {
         return @('OpenAI rejected the API key (it is wrong, expired or revoked). Create a new key at',
                  'https://platform.openai.com/api-keys and run Setup again to replace it. Nothing was charged.')
+    }
+    if ($Reason -match 'credit_balance_exhausted|insufficient_quota') {
+        return @('OpenAI says this API key''s account has no API credits. API credits are separate from a ChatGPT or Codex',
+                 'subscription. Check the organization that owns this key at https://platform.openai.com/settings/organization/billing,',
+                 'add credits there, and try again. No result was recorded for your document.')
     }
     if ($Reason -match 'provider: HTTP 429|provider failed \(HTTP 429\)') {
         return @('OpenAI refused the request because of a usage limit. Usually the account has no credit or billing',
@@ -153,7 +167,14 @@ try {
         Write-Host ("Document: {0} ({1:N0} KB)" -f $item.Name, ($item.Length / 1KB)) -ForegroundColor White
         Write-Info 'The text of this document will be sent to OpenAI through the Research Workbench, and the'
         Write-Info 'model calls are billed to your OpenAI account.'
-        if ($config.discover_sources) {
+        $folder = $Sources
+        if (-not $folder -and -not $Yes -and (Read-YesNo 'Do you have a folder of source material to check it against? (N searches the web instead)' $false)) {
+            $folder = Select-SourceFolder
+        }
+        if ($folder) {
+            Write-Info ('It will be checked against the files in ' + $folder + ', as the source material you chose. Passages')
+            Write-Info 'from them are sent to OpenAI too, and a copy stays in the local Get Files library. The web is not searched.'
+        } elseif ($config.discover_sources) {
             Write-Info 'The Workbench will also search the web for sources. That adds up to 10 paid model calls, and each'
             Write-Info 'call can run several web searches; the searches inside a call are not capped.'
         }
@@ -162,11 +183,12 @@ try {
         $started = Get-Date
         $script:lastStep = ''
         $arguments = @('check', $item.FullName)
-        if ($config.discover_sources) { $arguments += '--discover' }
+        if ($folder) { $arguments += @('--sources', $folder) }
+        elseif ($config.discover_sources) { $arguments += '--discover' }
         Write-Info 'Working. Long documents can take 10-30 minutes; keep this window open.'
         $result = Invoke-DocVerify $config $arguments {
             param($line)
-            if ($line.StartsWith('Result: ')) { return }  # shown in the summary below
+            if ($line.StartsWith('Result: ') -or $line.StartsWith('Warning about the extracted text: ')) { return }  # shown in the summary below
             $friendly = $line -replace '\(model call\)', '(paid OpenAI call)' -replace '\(model and web search calls\)', '(paid OpenAI and web search calls)'
             $script:lastStep = $friendly
             Write-Host ('   ' + (Get-Date).ToString('HH:mm:ss') + '  ' + $friendly)

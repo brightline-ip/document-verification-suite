@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.1.0 (source folders) - 2026-11-06
+
+- *Verify a Document* can check against a folder of source material you choose, instead of searching the web.
+- A plain message when the OpenAI account has no API credits, which are separate from a ChatGPT or Codex subscription.
+- Bundles the Workbench's word-for-word quotation check.
+
 ## 0.1.0 (honest reports) — 2026-11-06
 
 - Bundles the Research Verification Workbench with its status changes (migration 016, applied on repair), Document
