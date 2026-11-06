@@ -320,7 +320,9 @@ function Stop-SuiteProcess([string]$RunDir, [string]$Name, [string]$MustContain)
         $info = Get-ProcessCommandLine $id
         if ($info -and $info.CommandLine -and $info.CommandLine.IndexOf($MustContain, [StringComparison]::OrdinalIgnoreCase) -ge 0) {
             # /T also ends the child interpreter that a Windows virtual-environment python.exe starts.
-            $null = & taskkill.exe /PID $id /T /F 2>&1
+            # Windows PowerShell treats a native program's error output as a stop under 'Stop', so a child that is already gone must not end this.
+            $old = $ErrorActionPreference; $ErrorActionPreference = 'Continue'
+            try { $null = & taskkill.exe /PID $id /T /F 2>&1 } finally { $ErrorActionPreference = $old }
             $stopped = $true
         }
     }
@@ -524,10 +526,16 @@ function Start-Suite($Config) {
 
 function Stop-Suite($Config) {
     $paths = Get-SuitePaths $Config.install_root
-    [void](Stop-SuiteProcess $paths.Run 'docverify' $paths.DocVerifyConf)
-    [void](Stop-SuiteProcess $paths.Run 'context-forge' $paths.ContextForge)
-    [void](Stop-GetFiles $Config)
-    [void](Stop-Workbench $Config)
+    # One service failing to stop must not leave the others running.
+    $problems = @()
+    foreach ($step in @(
+        { [void](Stop-SuiteProcess $paths.Run 'docverify' $paths.DocVerifyConf) },
+        { [void](Stop-SuiteProcess $paths.Run 'context-forge' $paths.ContextForge) },
+        { [void](Stop-GetFiles $Config) },
+        { [void](Stop-Workbench $Config) })) {
+        try { & $step } catch { $problems += $_.Exception.Message }
+    }
+    if ($problems.Count) { throw ($problems -join ' ') }
 }
 
 # ---------------------------------------------------------------------------------------------

@@ -143,6 +143,10 @@ try {
 
     Write-Step 'Removing files'
     if ($RemoveData) {
+        # The marker and the settings go last: if something is still in use, running Uninstall again can finish the job.
+        foreach ($child in @(Get-ChildItem -LiteralPath $InstallRoot -Force | Where-Object { $_.Name -ne $script:SuiteMarker } | Sort-Object { $_.Name -in @('bin', 'config', 'run') })) {
+            Remove-Tree $child.FullName
+        }
         Remove-Tree $InstallRoot
         Write-Good "Removed $InstallRoot"
     } else {
