@@ -110,7 +110,8 @@ function Explain-Failure($Config, [string]$ErrorLine, [string]$LastStep, [dateti
         '^no_claims$|^workbench_outdated$|^document_runtime_missing$|^upstream_http_409$' { Write-Info ($ErrorLine -replace '^error \([^)]*\):\s*', ''); return }
     }
     if ($paid -or $code -match '^upstream_http_5\d\d$|^submission_uncertain$|incomplete') {
-        Write-Info ('The paid AI step failed: ' + ($LastStep -replace '^\s+', ''))
+        $stepLabel = if ($paid) { 'The paid AI step failed: ' } else { 'This step failed: ' }
+        Write-Info ($stepLabel + ($LastStep -replace '^\s+', ''))
         $reason = Get-WorkbenchFailureReason $Config $Started
         if (-not $reason) { $reason = $ErrorLine }
         $lines = Explain-ProviderReason $reason

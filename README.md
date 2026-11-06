@@ -207,7 +207,8 @@ text per day (UTC) and after 400 calls per run; these limit volume, not money. S
   (including `journal.sqlite3`) until you delete it. *Uninstall*, choosing to delete your data, removes all of it. To delete one
   document, see "What stays behind" in the Document Verification README (`app\document-verification`). With Docker, run
   the Workbench's delete command from `app\research-workbench` with this suite's project name:
-  `docker compose -p brightline-docverify exec app node scripts/delete-project.js <workbench-project-id> --yes`.
+  `docker compose -p brightline-docverify exec app node scripts/delete-project.js <workbench-project-id> --yes`
+  (add `-T` after `exec` if you run it from a script rather than a terminal).
 - **What it trusts**: single-user computer. Anyone who can log in as you can use the suite and spend your OpenAI
   budget. See [SECURITY.md](SECURITY.md).
 
