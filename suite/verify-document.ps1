@@ -5,7 +5,7 @@ param(
     [switch]$NoOpen,
     [switch]$Yes,
     [string]$Sources,
-    [Parameter(ValueFromRemainingArguments = $true)][string[]]$Files
+    [Parameter(Position = 0, ValueFromRemainingArguments = $true)][string[]]$Files  # a file dropped on the shortcut arrives here, never in -Sources
 )
 $ErrorActionPreference = 'Stop'
 . (Join-Path $PSScriptRoot 'SuiteCommon.ps1')
@@ -33,7 +33,7 @@ function Select-DocumentFile {
     Add-Type -AssemblyName System.Windows.Forms
     $dialog = New-Object Windows.Forms.OpenFileDialog
     $dialog.Title = 'Choose a document to verify'
-    $dialog.Filter = 'Word or PDF documents (*.docx;*.pdf)|*.docx;*.pdf|Markdown or text (*.md;*.markdown;*.txt)|*.md;*.markdown;*.txt'
+    $dialog.Filter = 'Word, PDF or PowerPoint (*.docx;*.pdf;*.pptx)|*.docx;*.pdf;*.pptx|Markdown or text (*.md;*.markdown;*.txt)|*.md;*.markdown;*.txt'
     $dialog.Multiselect = $true
     $dialog.InitialDirectory = [Environment]::GetFolderPath('MyDocuments')
     if ($dialog.ShowDialog() -eq [Windows.Forms.DialogResult]::OK) { return @($dialog.FileNames) }
@@ -160,8 +160,8 @@ try {
         Write-Host ''
         if (-not (Test-Path -LiteralPath $file -PathType Leaf)) { Write-Bad "File not found: $file"; $exit = 1; continue }
         $item = Get-Item -LiteralPath $file
-        if ($item.Extension.ToLowerInvariant() -notin @('.docx', '.pdf', '.md', '.markdown', '.txt')) {
-            Write-Bad ("{0}: only Word (.docx) and PDF files can be verified (also .md, .markdown and .txt). Old .doc files: open in Word and Save As .docx." -f $item.Name)
+        if ($item.Extension.ToLowerInvariant() -notin @('.docx', '.pdf', '.pptx', '.md', '.markdown', '.txt')) {
+            Write-Bad ("{0}: only Word (.docx), PDF and PowerPoint (.pptx) files can be verified (also .md, .markdown and .txt). Old .doc files: open in Word and Save As .docx." -f $item.Name)
             $exit = 1; continue
         }
         Write-Host ("Document: {0} ({1:N0} KB)" -f $item.Name, ($item.Length / 1KB)) -ForegroundColor White
@@ -183,7 +183,7 @@ try {
         $started = Get-Date
         $script:lastStep = ''
         $arguments = @('check', $item.FullName)
-        if ($folder) { $arguments += @('--sources', $folder) }
+        if ($folder) { $arguments += @('--sources', ($folder -replace '(?<=[^:\\])\\+$', '')) }  # a trailing backslash would escape the closing quote
         elseif ($config.discover_sources) { $arguments += '--discover' }
         Write-Info 'Working. Long documents can take 10-30 minutes; keep this window open.'
         $result = Invoke-DocVerify $config $arguments {

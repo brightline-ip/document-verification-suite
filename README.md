@@ -3,7 +3,7 @@
 **Public preview 0.1.0** · Windows 10/11 · PolyForm Noncommercial 1.0.0 · Brightline IP
 
 A one-click Windows installer for having a model check the factual and legal statements in your Word and PDF drafts
-against sources it finds on the web. Drop a `.docx` or `.pdf` on the **Verify a Document** shortcut and, a few minutes
+against sources it finds on the web. Drop a `.docx`, `.pdf` or `.pptx` on the **Verify a Document** shortcut and, a few minutes
 later, a report opens in your browser. It separates the statements a model compared with a source and found a problem
 with, with the quoted passage; the statements where nothing was compared, and why; and the statements a model verified.
 If no usable source turned up, the first line of the report says that nothing was compared.
@@ -34,7 +34,7 @@ adds these shortcuts:
 - Start Menu, folder **Brightline Verification Suite**: *Start Brightline Verification Suite*, *Stop Brightline
   Verification Suite*, *Open Research Workbench*, *Verify a Document* (opens a file picker), *Uninstall Brightline
   Verification Suite*.
-- Desktop: **Verify a Document**. Drag a `.docx` or `.pdf` file onto it. (Start Menu entries cannot receive dragged
+- Desktop: **Verify a Document**. Drag a `.docx`, `.pdf` or `.pptx` file onto it. (Start Menu entries cannot receive dragged
   files, which is why this one is on the Desktop.)
 
 ## Requirements
@@ -143,7 +143,7 @@ What the results mean when a model did compare a statement with passages:
 |---|---|
 | VERIFIED | A model judged that a quoted source passage supports the statement. The quote is checked to appear in the source; the judgement is not |
 | OVERSTATED | A model judged that the source supports only a weaker or narrower version |
-| MISCITED | A model judged that the cited source or pin cite does not say this |
+| MISCITED | A model judged that the cited source or pin cite does not say this. Code also sets it when a quotation of 5 or more words is in none of the sources, and says so in the report |
 | CONTRADICTED | A model judged that a source says the opposite |
 | STALE | A model's label for an outdated source. No date check backs it |
 | UNSUPPORTED | A model did not find it in the passages it was shown. Those are the closest passages, not the whole source |
@@ -205,7 +205,7 @@ text per day (UTC) and after 400 calls per run; these limit volume, not money. S
   the same computer. *Open Research Workbench* copies it to your clipboard so you can paste it.
 - **What stays behind**: the text you verify stays in the Workbench database and in Document Verification's data folder
   (including `journal.sqlite3`) until you delete it. *Uninstall*, choosing to delete your data, removes all of it. To delete one
-  document, see "What stays behind" in the Document Verification README (`app\document-verification`). With Docker, run
+  document, see "What stays behind" in the Document Verification README (`app\document-verification`). Files you chose as a source folder also stay in the Get Files library, which has no way to remove one document; only *Uninstall* with data deletion removes them. With Docker, run
   the Workbench's delete command from `app\research-workbench` with this suite's project name:
   `docker compose -p brightline-docverify exec app node scripts/delete-project.js <workbench-project-id> --yes`
   (add `-T` after `exec` if you run it from a script rather than a terminal).
@@ -264,7 +264,7 @@ Settings > Apps if you no longer need them. Revoke your OpenAI API key if you no
 - Public preview. This installer was tested on one Windows 11 computer that already had the prerequisites; the
   winget installation offers were exercised only in `-DryRun`. Windows 10, a clean computer and Native mode on a
   real PostgreSQL installation have not been verified by the publisher.
-- No end-to-end verification with a real OpenAI key was run for this release.
+- One end-to-end run with a real OpenAI key was made, on a short synthetic memo and an earlier build. It does not measure accuracy, and source folders and the word-for-word quotation check have been tested only with a simulated provider unless the release notes say otherwise.
 - Old `.doc` files are not accepted (save them as `.docx`). Image-only PDF pages depend on Windows OCR.
 - Python: the bundled Context Forge and Get Files tests ran on Python 3.12 and Document Verification's on 3.12 and 3.14. The
   full installer has not been run by the publisher on a computer with only Python 3.12.
