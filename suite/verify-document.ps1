@@ -29,6 +29,7 @@ $ReasonHelp = [ordered]@{
     SOURCES_UNAVAILABLE = 'a source was found but could not be read, or was blocked'
     NO_MATCHING_PASSAGE = 'no passage in the sources shared a word with the statement'
     INVALID_MODEL_REPLY = 'passages were sent, but the model''s reply failed validation'
+    CITATION_NOT_CONFIRMED = 'the citation could not be confirmed from these sources, which does not show it is wrong'
 }
 
 function Select-DocumentFile {
