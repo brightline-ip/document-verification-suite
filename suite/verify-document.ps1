@@ -6,6 +6,7 @@ param(
     [switch]$Yes,
     [string]$Sources,
     [switch]$KeepSources,
+    [switch]$Adversarial,
     [Parameter(Position = 0, ValueFromRemainingArguments = $true)][string[]]$Files  # a file dropped on the shortcut arrives here, never in -Sources
 )
 $ErrorActionPreference = 'Stop'
@@ -15,7 +16,7 @@ $ErrorActionPreference = 'Stop'
 $StatusHelp = [ordered]@{
     VERIFIED       = 'a model judged that a quoted source passage supports it'
     OVERSTATED     = 'a model judged that the source supports only a weaker or narrower version'
-    MISCITED       = 'a model judged that the cited source does not say this, or code found a quotation in no source'
+    MISCITED       = 'a model judged that the cited source does not say this, or a code check on the citation or quotation failed'
     CONTRADICTED   = 'a model judged that a source says the opposite'
     STALE          = 'a model''s label for an outdated source; no date check backs it'
     UNSUPPORTED    = 'a model did not find it in the passages it was shown'
@@ -24,7 +25,7 @@ $StatusHelp = [ordered]@{
 }
 $ReasonHelp = [ordered]@{
     NO_SOURCES          = 'no source was linked'
-    NO_ELIGIBLE_SOURCE  = 'sources were linked, but none qualifies (a primary source was needed, and these are labelled secondary)'
+    NO_ELIGIBLE_SOURCE  = 'sources were linked, but none qualifies (for example, a primary source was needed and these are not labelled primary)'
     SOURCES_UNAVAILABLE = 'a source was found but could not be read, or was blocked'
     NO_MATCHING_PASSAGE = 'no passage in the sources shared a word with the statement'
     INVALID_MODEL_REPLY = 'passages were sent, but the model''s reply failed validation'
@@ -188,6 +189,7 @@ try {
         $started = Get-Date
         $script:lastStep = ''
         $arguments = @('check', $item.FullName)
+        if ($Adversarial) { $arguments += '--adversarial' }
         if ($folder) {
             $arguments += @('--sources', ($folder -replace '(?<=[^:\\])\\+$', ''))  # a trailing backslash would escape the closing quote
             if ($keep) { $arguments += '--keep-sources' }
@@ -243,7 +245,7 @@ try {
         foreach ($w in @($r.document_warnings)) { if ($w) { Write-Warn2 ('Compare the text with your original: ' + $w) } }
         foreach ($l in @($r.limitations)) { if ($l -and $l.code) { Write-Warn2 ('Note: ' + $(if ($l.message) { $l.message } else { $l.code })) } }
         if ($c.compared) { Write-Info 'A result is a model''s reading of the sources, not legal advice. Read the quoted passages in the report.' }
-        if ($c.with_findings -or $c.not_checked) { Write-Info 'The report numbers these claims. To decide what happens to each, use its control on the Workbench page.' }
+        if ($c.with_findings -or $c.not_checked) { Write-Info 'The report numbers these claims. To decide what happens to each, use its control on the Workbench page or docverify groom.' }
         Write-Info ('Report: ' + $r.report_html)
         if (-not $NoOpen) { Start-Process $r.report_html }
     }

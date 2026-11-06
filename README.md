@@ -143,7 +143,7 @@ What the results mean when a model did compare a statement with passages:
 |---|---|
 | VERIFIED | A model judged that a quoted source passage supports the statement. The quote is checked to appear in the source; the judgement is not |
 | OVERSTATED | A model judged that the source supports only a weaker or narrower version |
-| MISCITED | A model judged that the cited source or pin cite does not say this. Code also sets it when a quotation of 5 or more words is in none of the sources, and says so in the report |
+| MISCITED | A model judged that the cited source or pin cite does not say this. Code also sets it when a check on the citation or quotation fails, and says which in the report |
 | CONTRADICTED | A model judged that a source says the opposite |
 | STALE | A model's label for an outdated source. No date check backs it |
 | UNSUPPORTED | A model did not find it in the passages it was shown. Those are the closest passages, not the whole source |
@@ -245,7 +245,7 @@ Install folder layout: `app\` (the four tools), `bin\` (shortcut scripts), `conf
 | "OpenAI refused the request because of a usage limit" | Usually no credit or billing on the OpenAI account, or too many requests at once. Check <https://platform.openai.com/settings/organization/billing>. |
 | "The Workbench could not reach OpenAI" | Check the internet connection, VPN or firewall; `api.openai.com` must be reachable. |
 | "This PDF has no readable text layer" | The PDF is scanned and OCR could not read every page. Use the Word original or a text-based PDF. OCR needs the Windows English language pack (Settings > Time & language). |
-| "No claim was compared with any source", or many statements are *Not compared* | Look at the reason shown for each. Most often the web search found nothing usable, or the sources could not be read. To check against your own files, answer Y when *Verify a Document* asks for a folder of source material. Documents already in your Get Files library are searched on every run and can also be used, labelled by how they got there. Running the shortcut again repeats the search and is billed again. |
+| "No claim was compared with any source", or many statements are *Not compared* | Look at the reason shown for each. Most often the web search found nothing usable, or the sources could not be read. To check against your own files, answer Y when *Verify a Document* asks for a folder of source material. Documents already in your Get Files library are searched on other runs and can also be used, labelled by how they got there. Running the shortcut again repeats the search and is billed again. |
 | "The Workbench found no checkable claims" | The model found no statement to check, so nothing was compared and no report was written. |
 | The Workbench page asks for an access token | Use *Open Research Workbench* (it copies the token), click the box, press Ctrl+V. |
 | Something else | Logs are in `%LOCALAPPDATA%\Brightline\DocVerify\logs`. Run *Start Brightline Verification Suite* to see which part does not start. |
