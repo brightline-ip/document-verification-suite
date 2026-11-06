@@ -9,10 +9,12 @@
 
   Missing prerequisites (Python 3.12, Node.js LTS, Docker Desktop or PostgreSQL) are explained and offered for
   installation through winget; nothing is installed without your "yes". Re-running Setup repairs or updates an
-  existing installation and keeps your data, tokens and (unless you choose otherwise) your OpenAI key.
+  existing installation: program files are mirrored from the download, so no stale file stays behind, and your
+  data, tokens and (unless you choose otherwise) your OpenAI key are kept.
 
 .PARAMETER InstallRoot
-  Install folder. Default: %LOCALAPPDATA%\Brightline\DocVerify
+  Install folder, at most 62 characters. A non-empty folder Setup did not create is refused.
+  Default: %LOCALAPPDATA%\Brightline\DocVerify
 .PARAMETER WorkbenchMode
   Docker (default, recommended: Docker Desktop runs the Workbench and its PostgreSQL database) or Native
   (Node.js plus a PostgreSQL server you install yourself).
@@ -60,6 +62,7 @@ $bundle = [IO.Path]::GetFullPath($PSScriptRoot)
 
 $PowerShellExe = Join-Path $env:SystemRoot 'System32\WindowsPowerShell\v1.0\powershell.exe'
 $InstallRoot = [IO.Path]::GetFullPath($InstallRoot)
+if ($InstallRoot.Length -gt 3) { $InstallRoot = $InstallRoot.TrimEnd('\') }
 $paths = Get-SuitePaths $InstallRoot
 # Accept "-SimulateMissing Python,Node" from both -File (one string) and -Command (an array).
 $SimulateMissing = @($SimulateMissing | ForEach-Object { $_ -split ',' } | ForEach-Object { $_.Trim() } | Where-Object { $_ })
@@ -176,6 +179,13 @@ if ($format -and $format -ne 'NTFS' -and $format -ne 'ReFS') {
     throw "The install folder is on a $format drive, which cannot keep your OpenAI key private. Choose a folder on an NTFS drive (-InstallRoot)."
 }
 $null = Quote-Arg $InstallRoot  # refuses characters the background launcher cannot pass safely
+# Context Forge and Get Files each allow 80 characters for their own folder (OCR working folders need the room).
+if ($InstallRoot.Length -gt 62) { throw 'The install folder path is too long (at most 62 characters, because the tools need room for their working folders). Choose a shorter path with -InstallRoot.' }
+# Repair mirrors program files into this folder, so it must be one Setup created.
+$hadInstall = Test-Path -LiteralPath $paths.Marker -PathType Leaf
+if (-not $hadInstall -and (Test-Path -LiteralPath $InstallRoot) -and (Get-ChildItem -LiteralPath $InstallRoot -Force | Select-Object -First 1)) {
+    throw "$InstallRoot already has files that Setup did not put there. Choose an empty folder with -InstallRoot."
+}
 
 # ---- 2. Prerequisites -------------------------------------------------------------------------
 Write-Step 'Step 2 of 7: Checking required programs'
@@ -189,9 +199,17 @@ if (-not $python) {
     if ($r -eq 'installed') { $python = Find-SuitePython $PythonExe }
     if (-not $python -and -not $DryRun) { $missingStop = $true; Write-Bad 'Python 3.12 is required. Install it, then run Setup again.' }
 }
+if ($python -and $python.Version.Minor -ne 12 -and -not $PythonExe) {
+    $found = $python.Version
+    $r = Request-Prerequisite 'Python 3.12' 'Python.Python.3.12' @(
+        "This computer has Python $found. Setup prefers Python 3.12: it is the version the bundled tools' own tests",
+        'ran on. Whether another version works is not something this release can promise.') 'https://www.python.org/downloads/windows/' @(
+        'Python is free (PSF license). It installs beside the version you already have.')
+    if ($r -eq 'installed') { $python = Find-SuitePython $PythonExe }
+}
 if ($python) {
     Write-Good ("Python {0} ({1})" -f $python.Version, $python.Exe)
-    if ($python.Version.Minor -ne 12) { Write-Info 'Note: the tools are tested on Python 3.12; this newer version is expected to work.' }
+    if ($python.Version.Minor -ne 12) { Write-Warn2 ("Continuing with Python {0}. The bundled tools' tests ran on 3.12, so this version is not promised to work." -f $python.Version) }
 }
 
 $node = if ('Node' -in $SimulateMissing) { $null } else { Find-SuiteNode }
@@ -346,11 +364,14 @@ foreach ($dir in @($paths.Secrets, $paths.Data)) {
 foreach ($dir in @($paths.DocVerifyData, $paths.CfOutput)) { New-Item -ItemType Directory -Force -Path $dir | Out-Null }
 if ($WorkbenchMode -eq 'Native') { New-Item -ItemType Directory -Force -Path $paths.WorkbenchData | Out-Null }
 
+# /MIR removes files a newer version no longer ships. The folders and files named here are left alone: they hold
+# virtual environments, packages, tokens, data and the settings Setup writes, not program files.
 foreach ($slug in $script:ToolSlugs) {
-    $null = & robocopy.exe (Join-Path $bundle "tools\$slug") (Join-Path $paths.App $slug) /E /XD .git node_modules .venv data output security storage /NFL /NDL /NJH /NJS /NP
+    $null = & robocopy.exe (Join-Path $bundle "tools\$slug") (Join-Path $paths.App $slug) /MIR /XD .git node_modules .venv .venv-docs data output security storage logs intake __pycache__ /XF .env /NFL /NDL /NJH /NJS /NP
     if ($LASTEXITCODE -ge 8) { throw "Copying $slug failed (robocopy code $LASTEXITCODE)." }
 }
-foreach ($f in Get-ChildItem -LiteralPath (Join-Path $bundle 'suite') -File) { Copy-Item -LiteralPath $f.FullName -Destination $paths.Bin -Force }
+$null = & robocopy.exe (Join-Path $bundle 'suite') $paths.Bin /MIR /XF uninstall.ps1 /NFL /NDL /NJH /NJS /NP
+if ($LASTEXITCODE -ge 8) { throw "Copying the suite scripts failed (robocopy code $LASTEXITCODE)." }
 Copy-Item -LiteralPath (Join-Path $bundle 'uninstall.ps1') -Destination $paths.Bin -Force
 foreach ($doc in @('README.md', 'LICENSE', 'NOTICE', 'DISCLAIMER.md', 'SECURITY.md', 'CHANGELOG.md')) {
     if (Test-Path -LiteralPath (Join-Path $bundle $doc)) { Copy-Item -LiteralPath (Join-Path $bundle $doc) -Destination $paths.Root -Force }
@@ -458,7 +479,7 @@ $dvConfig = [ordered]@{
     data_dir     = $paths.DocVerifyData
     input_roots  = @($DocumentsFolder | Where-Object { $_ })
     workbench    = [ordered]@{ url = "http://127.0.0.1:$WorkbenchPort"; timeout_seconds = 3000; token_file = $paths.WorkbenchToken }
-    discovery    = [ordered]@{ enabled = $true; max_external_queries = 10 }
+    discovery    = [ordered]@{ max_external_queries = 10 }
     get_files    = [ordered]@{ enabled = $true; url = "http://127.0.0.1:$GetFilesPort"; token_file = $paths.GfToken; collection = 'research' }
     context_forge= [ordered]@{ enabled = $true; url = "http://127.0.0.1:$ContextForgePort"; token_file = $paths.CfToken; poll_timeout = 180 }
     drive        = [ordered]@{ enabled = $false }
@@ -525,6 +546,7 @@ if ($doctor.Json) {
         $entry = $doctor.Json.$name
         if ($entry -and $entry.ok) { Write-Good "Document Verification can reach $name" } else { $allOk = $false; Write-Bad "Document Verification cannot reach $name" }
     }
+    if ($doctor.Json.document_runtime -and -not $doctor.Json.document_runtime.ok) { $allOk = $false; Write-Bad $doctor.Json.document_runtime.detail }
 }
 
 Write-Host ''
@@ -537,5 +559,5 @@ if ($allOk) {
 Write-Info 'How to verify a document:'
 if (-not $NoDesktopShortcut) { Write-Info '  - Drag a .docx or .pdf file onto "Verify a Document" on your Desktop, or' }
 Write-Info '  - Start Menu > Brightline Verification Suite > Verify a Document, then pick the file.'
-Write-Info 'The report opens in your browser when the check is done.'
+Write-Info 'The report opens in your browser when the check is done. Its first line says what was really compared with sources.'
 Write-Info 'After restarting Windows, use "Start Brightline Verification Suite" first.'

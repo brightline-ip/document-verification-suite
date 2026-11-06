@@ -40,13 +40,15 @@ tokens in a report.
   may keep a copy.
 - **Docker access to Get Files.** In Docker mode, Get Files is started with `GET_FILES_ALLOW_DOCKER_HOST=1`, so the
   Workbench container can call it as `host.docker.internal`. The Get Files token is still required.
-- **Documents and sources are untrusted data.** They are sent to the model with instructions not to follow
-  instructions inside them; model output can still be wrong or manipulated. Read the quoted passages.
+- **Documents and sources are untrusted data.** They are sent to the model marked as data, with an instruction not to
+  follow instructions inside them. That lowers the risk; model output can still be wrong or manipulated. Read the quoted
+  passages.
 - **Process control.** Stop and uninstall end only processes whose command line or recorded process ID belongs to
   this installation. They never stop other copies of these tools or other programs on the same ports.
 
 ## Local-only data statement
 
-Your documents, reports, source library, Workbench database and all credentials stay on your computer. Data leaves
+Your documents, reports, source library, Workbench database and all credentials stay on your computer, and the text
+you verify stays there until you delete it (see the README, "What stays behind"). Data leaves
 it only when you verify a document (text and source passages go to OpenAI), when the Workbench searches the web and
 downloads public sources, and when Setup downloads packages and Docker images. See DISCLAIMER.md.

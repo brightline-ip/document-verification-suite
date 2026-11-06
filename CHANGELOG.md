@@ -1,5 +1,18 @@
 # Changelog
 
+## 0.1.0 (honest reports) — 2026-11-06
+
+- Bundles the Research Verification Workbench with its status changes (migration 016, applied on repair), Document
+  Verification with reports that separate findings from claims nothing was compared with, Context Forge 0.1.1 and the
+  latest Get Files.
+- *Verify a Document* states plainly when nothing was compared and exits 3; it counts findings and not-compared
+  statements separately, shows the reason, evidence gaps and coverage, and says what the web search costs.
+- README and SECURITY corrected: what each result means, library documents are not evidence, results follow Word headings
+  only, the 10 is model calls and the searches inside them are not capped.
+- Setup prefers Python 3.12 and offers it when another version is found; it no longer says a newer version will work. Repair
+  mirrors program files, so stale files go, refuses a non-empty folder it did not create, and limits `-InstallRoot` to 62
+  characters. README: do not run a bundled tool's own `Setup.cmd`.
+
 ## 0.1.0 — 2026-11-02
 
 First public preview of the one-click Windows installer.
