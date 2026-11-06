@@ -152,7 +152,7 @@ Write-Host ''
 Write-Host 'Brightline Document Verification Suite - Setup (public preview 0.1.0)' -ForegroundColor White
 Write-Host '----------------------------------------------------------------------'
 Write-Info 'This installs four tools that work together to check the factual and legal statements in your'
-Write-Info 'Word and PDF drafts against sources, and sets up a "Verify a Document" shortcut.'
+Write-Info 'Word, PDF and PowerPoint drafts against sources, and sets up a "Verify a Document" shortcut.'
 Write-Info "Install folder: $InstallRoot"
 if ($DryRun) { Write-Warn2 'DRY RUN: nothing will be installed, written or started.' }
 
@@ -521,10 +521,10 @@ $created = @()
 $created += New-SuiteShortcut $ShortcutFolder 'Start Brightline Verification Suite' 'start-suite.ps1' 'Start the four verification services' "$icons,137"
 $created += New-SuiteShortcut $ShortcutFolder 'Stop Brightline Verification Suite' 'stop-suite.ps1' 'Stop the verification services' "$icons,27"
 $created += New-SuiteShortcut $ShortcutFolder 'Open Research Workbench' 'open-workbench.ps1' 'Open the Research Workbench in your browser' "$icons,13"
-$created += New-SuiteShortcut $ShortcutFolder 'Verify a Document' 'verify-document.ps1' 'Choose a Word or PDF file to verify' "$icons,1" -Sta
+$created += New-SuiteShortcut $ShortcutFolder 'Verify a Document' 'verify-document.ps1' 'Choose a Word, PDF or PowerPoint file to verify' "$icons,1" -Sta
 $created += New-SuiteShortcut $ShortcutFolder 'Uninstall Brightline Verification Suite' 'uninstall.ps1' 'Remove the verification suite' "$icons,31"
 if (-not $NoDesktopShortcut) {
-    $created += New-SuiteShortcut $DesktopFolder 'Verify a Document' 'verify-document.ps1' 'Drop a Word or PDF file here to verify it' "$icons,1" -Sta
+    $created += New-SuiteShortcut $DesktopFolder 'Verify a Document' 'verify-document.ps1' 'Drop a Word, PDF or PowerPoint file here to verify it' "$icons,1" -Sta
 }
 $suite['shortcuts'] = @($created)
 $suite['shortcut_folder'] = $ShortcutFolder
@@ -557,7 +557,7 @@ if ($allOk) {
     Write-Host "if it still fails, see Troubleshooting in the README and the logs in $($paths.Logs)." -ForegroundColor Yellow
 }
 Write-Info 'How to verify a document:'
-if (-not $NoDesktopShortcut) { Write-Info '  - Drag a .docx or .pdf file onto "Verify a Document" on your Desktop, or' }
+if (-not $NoDesktopShortcut) { Write-Info '  - Drag a .docx, .pdf or .pptx file onto "Verify a Document" on your Desktop, or' }
 Write-Info '  - Start Menu > Brightline Verification Suite > Verify a Document, then pick the file.'
 Write-Info 'The report opens in your browser when the check is done. Its first line says what was really compared with sources.'
 Write-Info 'After restarting Windows, use "Start Brightline Verification Suite" first.'
