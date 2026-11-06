@@ -104,7 +104,7 @@ function Explain-Failure($Config, [string]$ErrorLine, [string]$LastStep, [dateti
         '^upstream_http_422$|^upstream_http_415$|^upstream_http_413$' {
             Write-Info 'The Workbench could not read this file. It may be damaged, password-protected, or larger than 25 MB.'; return }
         '^pdf_needs_normalization$|^normalization_incomplete$' {
-            Write-Info 'This PDF has no readable text layer (it is probably scanned), and Context Forge could not'
+            Write-Info 'This PDF has no readable text layer (it may be scanned or damaged), and Context Forge could not'
             Write-Info 'extract all of its pages. Try a text-based PDF or the original Word file.'; return }
         '^upstream_http_429$' { Write-Info 'The Workbench is busy or its daily AI limit is used up. Wait a few minutes and try again.'; return }
         '^no_claims$|^workbench_outdated$|^document_runtime_missing$|^upstream_http_409$' { Write-Info ($ErrorLine -replace '^error \([^)]*\):\s*', ''); return }
@@ -210,6 +210,7 @@ try {
         foreach ($gap in @($r.evidence_gaps.excluded_sources)) {
             if ($gap) { Write-Warn2 ('Source left out: ' + $(if ($gap.title) { $gap.title } else { $gap.canonical_url }) + ': ' + $gap.reason) }
         }
+        foreach ($w in @($r.document_warnings)) { if ($w) { Write-Warn2 ('Compare the text with your original: ' + $w) } }
         foreach ($l in @($r.limitations)) { if ($l -and $l.code) { Write-Warn2 ('Note: ' + $(if ($l.message) { $l.message } else { $l.code })) } }
         if ($c.compared) { Write-Info 'A result is a model''s reading of the sources, not legal advice. Read the quoted passages in the report.' }
         Write-Info ('Report: ' + $r.report_html)
