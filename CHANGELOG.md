@@ -5,6 +5,7 @@
 - *Verify a Document* can check against a folder of source material you choose, instead of searching the web.
 - A plain message when the OpenAI account has no API credits, which are separate from a ChatGPT or Codex subscription.
 - Bundles the Workbench's word-for-word quotation check.
+- Your Get Files library grows with use and counts as evidence. *Verify a Document* asks whether to keep a source folder in your corpus, and reports number the claims you can decide on.
 - A PowerPoint file can be verified, on the shortcut as well.
 - A file dropped on the shortcut is always taken as the document.
 

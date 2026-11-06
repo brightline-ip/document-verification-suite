@@ -5,6 +5,7 @@ param(
     [switch]$NoOpen,
     [switch]$Yes,
     [string]$Sources,
+    [switch]$KeepSources,
     [Parameter(Position = 0, ValueFromRemainingArguments = $true)][string[]]$Files  # a file dropped on the shortcut arrives here, never in -Sources
 )
 $ErrorActionPreference = 'Stop'
@@ -23,7 +24,7 @@ $StatusHelp = [ordered]@{
 }
 $ReasonHelp = [ordered]@{
     NO_SOURCES          = 'no source was linked'
-    NO_ELIGIBLE_SOURCE  = 'sources were linked, but none qualifies as evidence (a library link alone does not)'
+    NO_ELIGIBLE_SOURCE  = 'sources were linked, but none qualifies (a primary source was needed, and these are labelled secondary)'
     SOURCES_UNAVAILABLE = 'a source was found but could not be read, or was blocked'
     NO_MATCHING_PASSAGE = 'no passage in the sources shared a word with the statement'
     INVALID_MODEL_REPLY = 'passages were sent, but the model''s reply failed validation'
@@ -174,6 +175,10 @@ try {
         if ($folder) {
             Write-Info ('It will be checked against the files in ' + $folder + ', as the source material you chose. Passages')
             Write-Info 'from them are sent to OpenAI too, and a copy stays in the local Get Files library. The web is not searched.'
+            $keep = $KeepSources
+            if (-not $keep -and -not $Yes) {
+                $keep = Read-YesNo 'Keep these files in your corpus for later documents? (Do not, for client material: later runs for other matters could use them.)' $false
+            }
         } elseif ($config.discover_sources) {
             Write-Info 'The Workbench will also search the web for sources. That adds up to 10 paid model calls, and each'
             Write-Info 'call can run several web searches; the searches inside a call are not capped.'
@@ -183,7 +188,10 @@ try {
         $started = Get-Date
         $script:lastStep = ''
         $arguments = @('check', $item.FullName)
-        if ($folder) { $arguments += @('--sources', ($folder -replace '(?<=[^:\\])\\+$', '')) }  # a trailing backslash would escape the closing quote
+        if ($folder) {
+            $arguments += @('--sources', ($folder -replace '(?<=[^:\\])\\+$', ''))  # a trailing backslash would escape the closing quote
+            if ($keep) { $arguments += '--keep-sources' }
+        }
         elseif ($config.discover_sources) { $arguments += '--discover' }
         Write-Info 'Working. Long documents can take 10-30 minutes; keep this window open.'
         $result = Invoke-DocVerify $config $arguments {
@@ -235,6 +243,7 @@ try {
         foreach ($w in @($r.document_warnings)) { if ($w) { Write-Warn2 ('Compare the text with your original: ' + $w) } }
         foreach ($l in @($r.limitations)) { if ($l -and $l.code) { Write-Warn2 ('Note: ' + $(if ($l.message) { $l.message } else { $l.code })) } }
         if ($c.compared) { Write-Info 'A result is a model''s reading of the sources, not legal advice. Read the quoted passages in the report.' }
+        if ($c.with_findings -or $c.not_checked) { Write-Info 'The report numbers these claims. To decide what happens to each, use its control on the Workbench page.' }
         Write-Info ('Report: ' + $r.report_html)
         if (-not $NoOpen) { Start-Process $r.report_html }
     }

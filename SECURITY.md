@@ -51,5 +51,5 @@ tokens in a report.
 Your documents, reports, source library, Workbench database and all credentials stay on your computer, and the text
 you verify stays there until you delete it (see the README, "What stays behind"). Data leaves
 it only when you verify a document (text and source passages go to OpenAI, including passages from a source folder you
-choose, a copy of which stays in the local Get Files library until you remove it), when the Workbench searches the web and
+choose, a copy of which stays in the local Get Files library until you remove it; if you keep such files in your corpus, their passages can also go to OpenAI in later runs), when the Workbench searches the web and
 downloads public sources, and when Setup downloads packages and Docker images. See DISCLAIMER.md.
