@@ -26,7 +26,7 @@ It is a research aid for patent and legal practitioners, not legal advice. Read 
 | **Research Verification Workbench** | The engine. Finds the checkable statements in your text, gathers sources, compares each statement with quoted source passages and writes the findings. Also has its own web page for deeper work (projects, sources, fix-up drafts, exports). |
 | **Document Verification** (`docverify`) | Takes your Word or PDF file, sends its text to the Workbench and writes the report. Results are listed under your Word headings; a PDF carries no heading information, so its results are not sorted by section. |
 | **Context Forge** | Pulls text out of PDFs, including scanned pages (Windows' built-in OCR), when the Workbench cannot read a PDF itself. |
-| **Get Files** | Your local library of source documents (decisions, statutes, articles). A document from it can be linked to a statement, but a linked document is **not** used as evidence: nobody has classed it, so those statements read `NO_ELIGIBLE_SOURCE`. A document added from a local file cannot be linked at all, because it has no source address (the report lists this). When the web search runs, a stored document may be reused as a secondary source, which counts only for a statement that does not need a primary one. |
+| **Get Files** | Your local library of source documents (decisions, statutes, articles), which grows as you use it: sources a web search finds are saved to it, and so is a source folder you choose to keep. A library document with a passage holding at least half of a statement's words is linked to it as evidence: as primary if you kept it or an earlier run's model labelled it primary, otherwise as secondary, which counts only for a statement that does not need a primary source. |
 
 Setup installs all four for your Windows account only, connects them to each other with private access tokens, and
 adds these shortcuts:
@@ -155,7 +155,8 @@ Why nothing was compared for a statement (the report shows this as **Not compare
 | Reason | Meaning |
 |---|---|
 | NO_SOURCES | No source was linked to it |
-| NO_ELIGIBLE_SOURCE | Sources were linked, but none qualifies as evidence. Library documents do not, and a statement that needs a primary source cannot use a secondary one |
+| NO_ELIGIBLE_SOURCE | Sources were linked, but none qualifies as evidence, for example a statement that needs a primary source and has only secondary ones |
+| CITATION_NOT_CONFIRMED | A model compared passages, but the citation could not be confirmed from the sources in this run. That does not show it is wrong |
 | SOURCES_UNAVAILABLE | A source was found but could not be read: a failed download, blocked, a suspected login page or no usable text |
 | NO_MATCHING_PASSAGE | No passage in the sources shared a word with the statement |
 | INVALID_MODEL_REPLY | Passages were sent, but the model's reply failed validation, so there is no verdict |
@@ -264,7 +265,7 @@ Settings > Apps if you no longer need them. Revoke your OpenAI API key if you no
 - Public preview. This installer was tested on one Windows 11 computer that already had the prerequisites; the
   winget installation offers were exercised only in `-DryRun`. Windows 10, a clean computer and Native mode on a
   real PostgreSQL installation have not been verified by the publisher.
-- One end-to-end run with a real OpenAI key was made, on a short synthetic memo and an earlier build. It does not measure accuracy, and source folders and the word-for-word quotation check have been tested only with a simulated provider unless the release notes say otherwise.
+- Two end-to-end runs with a real OpenAI key were made, on small synthetic documents: a three-statement memo with web search on an earlier build, and a seven-statement office-action response checked against a source folder on this release's code apart from one later one-line fix. The citation and quotation checks gave the expected result on every statement. Two small documents do not measure accuracy, and code overturning a real model's VERIFIED has been seen only with a simulated provider.
 - Old `.doc` files are not accepted (save them as `.docx`). Image-only PDF pages depend on Windows OCR.
 - Python: the bundled Context Forge and Get Files tests ran on Python 3.12 and Document Verification's on 3.12 and 3.14. The
   full installer has not been run by the publisher on a computer with only Python 3.12.
