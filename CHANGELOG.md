@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.1.1 - 2026-11-20
+
+- Bundles Research Verification Workbench 0.1.1, which fixes a verification crash (PostgreSQL error 22P02) when the model returned the text "null" as a passage or source id. Document Verification, Context Forge and Get Files are unchanged.
+- README: documented that Setup refuses install paths containing `!`, `%` or `"`, so a Windows user name with one of them fails at step 1 (workaround: `-InstallRoot` outside the profile and a machine-wide Python 3.12).
+
 ## 0.1.0 (source folders) - 2026-11-06
 
 - *Verify a Document* can check against a folder of source material you choose, instead of searching the web.

@@ -12,7 +12,7 @@ if ($PSVersionTable.PSEdition -ne 'Core') {
     ) -join ';'
 }
 
-$script:SuiteVersion = '0.1.0'
+$script:SuiteVersion = '0.1.1'
 $script:SuiteMarker = '.brightline-docverify-suite'
 $script:ToolSlugs = @('research-workbench', 'document-verification', 'context-forge', 'get-files')
 

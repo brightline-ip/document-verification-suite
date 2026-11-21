@@ -149,7 +149,7 @@ function New-SuiteShortcut([string]$Folder, [string]$Name, [string]$Script, [str
 
 # =============================================================================================
 Write-Host ''
-Write-Host 'Brightline Document Verification Suite - Setup (public preview 0.1.0)' -ForegroundColor White
+Write-Host 'Brightline Document Verification Suite - Setup (public preview 0.1.1)' -ForegroundColor White
 Write-Host '----------------------------------------------------------------------'
 Write-Info 'This installs four tools that work together to check the factual and legal statements in your'
 Write-Info 'Word, PDF and PowerPoint drafts against sources, and sets up a "Verify a Document" shortcut.'

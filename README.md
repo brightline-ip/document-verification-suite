@@ -1,6 +1,6 @@
 # Brightline Document Verification Suite
 
-**Public preview 0.1.0** · Windows 10/11 · PolyForm Noncommercial 1.0.0 · Brightline IP
+**Public preview 0.1.1** · Windows 10/11 · PolyForm Noncommercial 1.0.0 · Brightline IP
 
 A one-click Windows installer for having a model check the factual and legal statements in your Word and PDF drafts
 against sources it finds on the web. Drop a `.docx`, `.pdf` or `.pptx` on the **Verify a Document** shortcut and, a few minutes
@@ -83,19 +83,19 @@ never requires a paid product.
 
 ## Install
 
-1. **Download** `brightline-docverify-suite-0.1.0.zip` and `SHA256SUMS.txt` from the GitHub release page.
+1. **Download** `brightline-docverify-suite-0.1.1.zip` and `SHA256SUMS.txt` from the GitHub release page.
 2. **Check the download is genuine.** The zip and its scripts are not code-signed, so Windows cannot vouch for
    them; the published SHA-256 checksum is how you confirm the file was not altered. Open PowerShell (Start menu,
    type *PowerShell*) and run, adjusting the folder:
 
    ```powershell
-   Get-FileHash "$env:USERPROFILE\Downloads\brightline-docverify-suite-0.1.0.zip" -Algorithm SHA256
+   Get-FileHash "$env:USERPROFILE\Downloads\brightline-docverify-suite-0.1.1.zip" -Algorithm SHA256
    ```
 
-   The `Hash` shown must equal the value next to `brightline-docverify-suite-0.1.0.zip` in `SHA256SUMS.txt` (and in
+   The `Hash` shown must equal the value next to `brightline-docverify-suite-0.1.1.zip` in `SHA256SUMS.txt` (and in
    the release notes), ignoring upper/lower case. If it differs, delete the file and do not run it.
 3. **Extract** the zip: right-click it, **Extract All...**, **Extract**. Do not run Setup from inside the zip
-   window. Open the extracted folder `brightline-docverify-suite-0.1.0`.
+   window. Open the extracted folder `brightline-docverify-suite-0.1.1`.
 4. **Double-click `Setup.cmd`.** What Windows may show, and what to do:
    - *"Windows protected your PC"* (Microsoft Defender SmartScreen, because the file came from the internet and is
      unsigned): click **More info**, then **Run anyway**. Do this only if the checksum in step 2 matched.
@@ -110,7 +110,8 @@ never requires a paid product.
 6. **If Setup installed Docker Desktop**, it stops there on purpose: restart Windows if asked, open *Docker
    Desktop* from the Start menu, accept its terms, wait until it shows **Engine running**, then double-click
    `Setup.cmd` again.
-7. Setup copies the tools to `%LOCALAPPDATA%\Brightline\DocVerify`, installs their Python packages, builds and
+7. Setup copies the tools to `%LOCALAPPDATA%\Brightline\DocVerify` (see *Windows user names with `!`, `%` or `"`* below if your user name
+   contains one of those characters), installs their Python packages, builds and
    starts the Workbench (first time 5-15 minutes), creates the shortcuts and finally checks that every part can
    reach every other. It ends with *"Setup finished. Everything is running."*
 
@@ -249,7 +250,30 @@ Install folder layout: `app\` (the four tools), `bin\` (shortcut scripts), `conf
 | "No claim was compared with any source", or many statements are *Not compared* | Look at the reason shown for each. Most often the web search found nothing usable, or the sources could not be read. To check against your own files, answer Y when *Verify a Document* asks for a folder of source material. Documents already in your Get Files library are searched on other runs and can also be used, labelled by how they got there. Running the shortcut again repeats the search and is billed again. |
 | "The Workbench found no checkable claims" | The model found no statement to check, so nothing was compared and no report was written. |
 | The Workbench page asks for an access token | Use *Open Research Workbench* (it copies the token), click the box, press Ctrl+V. |
+| Setup stops at step 1 with "Paths containing "", % or ! are not supported" | A path Setup must hand to `cmd.exe` contains `!`, `%` or `"`. The default install folder is under your user profile, so a Windows user name with one of those characters fails here. See the next section. |
 | Something else | Logs are in `%LOCALAPPDATA%\Brightline\DocVerify\logs`. Run *Start Brightline Verification Suite* to see which part does not start. |
+
+### Windows user names with `!`, `%` or `"`
+
+Setup refuses any install path containing `!`, `%` or `"`, because `cmd.exe` would expand or mangle them when the
+services are started. The default install folder is under your user profile, so a user name such as `Sam!` fails at the
+first step. Two things are needed:
+
+1. **Choose an install folder outside your profile.** Open a Command Prompt in the extracted folder and run:
+
+   ```
+   Setup.cmd -InstallRoot C:\Brightline\DocVerify
+   ```
+
+   Any short path (at most 62 characters) without `!`, `%` or `"` works. Use the same `-InstallRoot` whenever you run
+   Setup or Uninstall again. To be safe, also extract the downloaded zip to a folder without those characters, for example
+   `C:\Brightline\Setup`.
+2. **Use a machine-wide Python 3.12.** A per-user Python (the default of the python.org installer and of `winget`) lives
+   under your profile, and the services start with the path of that base Python, so they would fail later even though Setup
+   got past step 1. Install Python 3.12 for all users (in the python.org installer, choose *Install for all users*, which
+   installs under `C:\Program Files`), or point Setup at one with `-PythonExe "C:\Program Files\Python312\python.exe"`.
+
+This is a limit of the installer, not something Setup can repair for you; renaming the Windows account is not needed.
 
 ## Uninstall
 
